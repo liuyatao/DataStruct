@@ -83,6 +83,10 @@ public class BinaryTree<T> implements Tree<T> {
 		}
 	}
 	
+	public void printPath() {
+		
+	}
+	
 	public List<BinaryNode<T>> toPreOrderList() {
 		List<BinaryNode<T>> list = new LinkedList<BinaryNode<T>>();
 		toPreOrderList(root, list);
