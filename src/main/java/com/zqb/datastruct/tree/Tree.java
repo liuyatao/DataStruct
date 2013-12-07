@@ -16,7 +16,7 @@ public interface Tree<T> {
 	 * 返回节点的高度
 	 * @return
 	 */
-	int heigth();
+	int height();
 	/**
 	 * 先根遍历
 	 */

@@ -9,7 +9,10 @@ public class BinaryNode<T> extends Node<T> {
 	private T data;
 	private BinaryNode<T> left, right;
 	
-	private BinaryNode(T data, BinaryNode<T> left, BinaryNode<T> right) {
+	public BinaryNode(T data) {
+		this.data = data;
+	}
+	public BinaryNode(T data, BinaryNode<T> left, BinaryNode<T> right) {
 		this.data = data;
 		this.left = left;
 		this.right = right;
@@ -32,5 +35,9 @@ public class BinaryNode<T> extends Node<T> {
 	}
 	public void setRight(BinaryNode<T> right) {
 		this.right = right;
+	}
+	@Override
+	public String toString() {
+		return "BinaryNode [data=" + data + "]";
 	}
 }
