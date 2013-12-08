@@ -83,8 +83,32 @@ public class BinaryTree<T> implements Tree<T> {
 		}
 	}
 	
+	
 	public void printPath() {
-		
+		T[] path = (T[]) new Object[height()];
+		printPath(root, path, 0);
+	}
+	/**
+	 * 求出路径的递归函数
+	 * @param node
+	 * @param path
+	 * @param top
+	 */
+	private void printPath(BinaryNode<T> node, T[] path, int top) {
+		path[top++] = node.getData();
+		if(node.getLeft()==null && node.getRight()==null) {
+			for(int i=0; i<top; i++) {
+				System.out.print(path[i]+", ");
+			}
+			System.out.println();
+		} else {
+			if(node.getLeft()!=null) {
+				printPath(node.getLeft(), path, top);
+			}
+			if(node.getRight()!=null) {
+				printPath(node.getRight(), path, top);
+			}
+		}
 	}
 	
 	public List<BinaryNode<T>> toPreOrderList() {

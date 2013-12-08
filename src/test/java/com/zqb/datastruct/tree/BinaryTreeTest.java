@@ -20,6 +20,7 @@ public class BinaryTreeTest {
 		System.out.println(btree.count());
 		System.out.println(btree.height());*/
 		//btree.levelOrderStruct();
-		System.out.println(btree.toPreOrderList());
+		//System.out.println(btree.toPreOrderList());
+		btree.printPath();
 	}
 }

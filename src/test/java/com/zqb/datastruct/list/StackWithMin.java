@@ -1,4 +1,4 @@
-package com.zqb.datastruct.list.test;
+package com.zqb.datastruct.list;
 
 import java.util.LinkedList;
 
