@@ -12,7 +12,12 @@ import java.util.LinkedList;
 public class JoinedSimple {
 
 	/**
-	 * 这是两条链表没有环的情况下
+	 * 这是两条链表没有环的情况下，
+	 * 
+	 * 如要这两条链存在环（也可能不存在的情况下，至少一个存在环），那就会出现两种情况：
+	 * 1、有且只有一个环，那两条链表就一定不会相交
+	 * 2、两个都是环的情况下，如果其中一个环在迭代了一圈之后又和自己的的header相等，并且不等于别一个环的值的话，就那说明这两个环是不相交的，反之就是相交
+	 * 
 	 * @param l1
 	 * @param l2
 	 * @return
@@ -38,10 +43,25 @@ public class JoinedSimple {
 	 * @param link
 	 * @return
 	 */
-	static boolean testCylic(LinkedList<String> link) {
+	static LinkedList<String> testCylic(LinkedList<String> link) {
 		Iterator<String> itr = link.iterator();
 		String start = itr.next();
 		String current = null;
-		return false;
+		return null;
+		/* 在此处,c是这样写的，每次p2比p1就是多一个，这样累加，如果存在环，那么在这里肯定会出现p1==p2的情况
+		 * 当在这样场景，java可能就会比较难表现出来，这也是java是弱化指针的概念的一下弊端
+		
+		Node* testCylic(Node * h1) {
+	  		Node * p1 = h1, *p2 = h1;
+	  		while (p2!=NULL && p2->next!=NULL) {
+	  			p1 = p1->next;
+	    		p2 = p2->next->next;
+	    		if (p1 == p2) {
+	      			return p1;
+	    		}
+	  		}
+	  		return NULL;
+		}
+		*/
 	}
 }
