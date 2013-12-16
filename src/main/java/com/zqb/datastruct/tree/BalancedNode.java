@@ -1,4 +1,5 @@
 package com.zqb.datastruct.tree;
+
 /**
  * 平衡二叉查找树（Balanced Binary Search Tree），红黑树 (Red-Black Tree )，B-tree 
  * @author zhengquanbin
@@ -29,15 +30,40 @@ public class BalancedNode<T extends Comparable<T>> extends Node<T> {
 	 * @return 若数据不放到这个节点上，就会返回下一个节点
 	 */
 	public BalancedNode<T> setOrNext(T data) {
-		if(dataCurrent==0) {
+		if(dataCurrent==0 || (dataCurrent<dataNum && data.compareTo((T) datas[dataCurrent-1])>0)) {
 			//如果dataCurrent==0，那就说明这个结点是没有任何的数据，那就直接把数据放到datas第一个
+			//如果dataCurrent<dataNum，并且data比dataCurrent的值要大，那也可以直接放到最后
 			datas[dataCurrent++] = data;
 			return null;
 		}
-		if(dataCurrent==dataNum) {
-			
+		//进行二分查找
+		int position = binarySearch(data);
+		if(position==-1) {
+			return null;
 		}
-		return null;
+		if(children[position]==null) {
+			children[position] = new BalancedNode<T>(dataNum);
+		}
+		return children[position];
+	}
+	/**
+	 * 折半查找
+	 * @param data
+	 */
+	private int binarySearch(T data) {
+		int begin = 0, end = dataCurrent, mid=0;
+		while(begin<end) {
+			mid = (begin+end)/2;
+			if(data.compareTo((T) datas[mid])==0) {
+				return -1;
+			}
+			if(data.compareTo((T) datas[mid])>0) {
+				begin = mid+1;
+			} else {
+				end = mid-1;
+			}
+		}
+		return mid;
 	}
 	
 	//----getter and setter

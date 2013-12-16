@@ -84,4 +84,13 @@ public class BalancedTree<T extends Comparable<T>> implements Tree<T> {
 	@Override
 	public void removeAll() {
 	}
+	
+	public static void main(String[] args) {
+		BalancedTree<Integer> tree = new BalancedTree<Integer>(5);
+		Integer[] array = {4, 2, 6, 20, 5, 8, 14, 19, 15, 30, 29, 17};
+		for(Integer a: array) {
+			tree.add(a);
+		}
+		System.out.println("done");
+	}
 }
