@@ -52,15 +52,15 @@ public class BalancedNode<T extends Comparable<T>> extends Node<T> {
 	 */
 	private int binarySearch(T data) {
 		int begin = 0, end = dataCurrent, mid=0;
-		while(begin<end) {
+		while((end-begin)>1) {
 			mid = (begin+end)/2;
 			if(data.compareTo((T) datas[mid])==0) {
 				return -1;
 			}
 			if(data.compareTo((T) datas[mid])>0) {
-				begin = mid+1;
+				begin = mid;
 			} else {
-				end = mid-1;
+				end = mid;
 			}
 		}
 		return mid;
