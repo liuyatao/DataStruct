@@ -5,7 +5,7 @@ package com.zqb.datastruct.tree;
  *         created 2013年12月16日
  * @param <T>
  */
-public class BalancedTree<T> implements Tree<T> {
+public class BalancedTree<T extends Comparable<T>> implements Tree<T> {
 
 	private BalancedNode<T> root;
 	
@@ -18,7 +18,10 @@ public class BalancedTree<T> implements Tree<T> {
 	 * @param data
 	 */
 	public void add(T data) {
-		//情况一、当
+		BalancedNode<T> node = root.setOrNext(data);
+		while(node!=null) {
+			node = node.setOrNext(data);
+		}
 	}
 	
 	@Override

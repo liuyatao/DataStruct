@@ -6,7 +6,7 @@ package com.zqb.datastruct.tree;
  * @param <T>
  */
 @SuppressWarnings("unchecked")
-public class BalancedNode<T> extends Node<T> {
+public class BalancedNode<T extends Comparable<T>> extends Node<T> {
 	/**数据的个数*/
 	private int dataNum;
 	/**数据的内容数组*/
@@ -22,6 +22,25 @@ public class BalancedNode<T> extends Node<T> {
 		this.children = new BalancedNode[dataNum+1];
 		this.dataCurrent = 0;
 	}
+	
+	/**
+	 * 在结点中设置一个参数
+	 * @param data
+	 * @return 若数据不放到这个节点上，就会返回下一个节点
+	 */
+	public BalancedNode<T> setOrNext(T data) {
+		if(dataCurrent==0) {
+			//如果dataCurrent==0，那就说明这个结点是没有任何的数据，那就直接把数据放到datas第一个
+			datas[dataCurrent++] = data;
+			return null;
+		}
+		if(dataCurrent==dataNum) {
+			
+		}
+		return null;
+	}
+	
+	//----getter and setter
 	public int getDataNum() {
 		return dataNum;
 	}
@@ -45,5 +64,9 @@ public class BalancedNode<T> extends Node<T> {
 	}
 	public void setDataCurrent(int dataCurrent) {
 		this.dataCurrent = dataCurrent;
+	}
+	
+	public static void main(String[] args) {
+		System.out.println((new Integer(3)).compareTo(3));
 	}
 }
