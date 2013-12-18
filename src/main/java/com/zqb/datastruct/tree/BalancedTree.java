@@ -14,13 +14,25 @@ public class BalancedTree<T extends Comparable<T>> implements Tree<T> {
 	}
 	
 	/**
-	 * 添加一个结点
+	 * 插入一个结点
 	 * @param data
 	 */
-	public void add(T data) {
+	public void insert(T data) {
 		BalancedNode<T> node = root.setOrNext(data);
 		while(node!=null) {
 			node = node.setOrNext(data);
+		}
+	}
+	
+	/**
+	 * 删除某个节点，这里可以有两个方案，1：可以把相应的节点标记成删除，这样就不需要移动大量的节点，但就会产生大量的判断
+	 * 2、直接把节点删除，但要移动大量的节点，这里采用第二次方案来实现
+	 * @param data
+	 */
+	public void remove(T data) {
+		BalancedNode<T> node = root.removeOrNext(data);
+		while(node!=null) {
+			node = node.removeOrNext(data);
 		}
 	}
 	
@@ -89,7 +101,7 @@ public class BalancedTree<T extends Comparable<T>> implements Tree<T> {
 		BalancedTree<Integer> tree = new BalancedTree<Integer>(5);
 		Integer[] array = {4, 2, 6, 20, 5, 8, 14, 19, 15, 30, 29, 17};
 		for(Integer a: array) {
-			tree.add(a);
+			tree.insert(a);
 		}
 		System.out.println("done");
 	}

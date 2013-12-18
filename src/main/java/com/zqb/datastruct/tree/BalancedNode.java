@@ -12,16 +12,22 @@ public class BalancedNode<T extends Comparable<T>> extends Node<T> {
 	private int dataNum;
 	/**数据的内容数组*/
 	private Object[] datas;
+	/**父亲节点*/
+	private BalancedNode<T> parent;
 	/**指向子节点的指针*/
 	private BalancedNode<T>[] children;
 	/**当前数组保存数据的位置*/
 	private int dataCurrent;
 	
 	public BalancedNode(int dataNum) {
+		this(dataNum, null);
+	}
+	public BalancedNode(int dataNum, BalancedNode<T> parent) {
+		this.dataCurrent = 0;
+		this.parent = parent;
 		this.dataNum = dataNum;
 		this.datas = new Object[dataNum];
 		this.children = new BalancedNode[dataNum+1];
-		this.dataCurrent = 0;
 	}
 	
 	/**
@@ -37,33 +43,67 @@ public class BalancedNode<T extends Comparable<T>> extends Node<T> {
 			return null;
 		}
 		//进行二分查找
-		int position = binarySearch(data);
-		if(position==-1) {
+		Offset offset = binarySearch(data);
+		if(offset.exist) {
 			return null;
 		}
-		if(children[position]==null) {
-			children[position] = new BalancedNode<T>(dataNum);
+		if(children[offset.index]==null) {
+			children[offset.index] = new BalancedNode<T>(dataNum, this);
 		}
-		return children[position];
+		return children[offset.index];
 	}
 	/**
-	 * 折半查找
+	 * 在结点中设置一个参数删除一个参数
 	 * @param data
+	 * @return
 	 */
-	private int binarySearch(T data) {
-		int begin = 0, end = dataCurrent, mid=0;
-		while((end-begin)>1) {
-			mid = (begin+end)/2;
-			if(data.compareTo((T) datas[mid])==0) {
-				return -1;
-			}
-			if(data.compareTo((T) datas[mid])>0) {
-				begin = mid;
+	public BalancedNode<T> removeOrNext(T data) {
+		if(dataCurrent==0) {
+			return null;
+		}
+		//进行二分查找
+		Offset offset = binarySearch(data);
+		if(offset.exist) {
+			int index = this.parent.binarySearch((T) this.datas[0]).index;
+			//进行节点的删除
+			if(dataCurrent==1) { 
+				this.parent.children[index] = children[0];
 			} else {
-				end = mid;
+				
+			}
+			return null;
+		}
+		//如果children[position]为null就表示为没有找到相应的节点
+		return children[offset.index];
+	}
+	/**
+	 * （设置过新算法的）折半查找，算法描述：
+	 * @param data
+	 * @return 
+	 */
+	private Offset binarySearch(T data) {
+		int begin = 0, end = dataCurrent-1, mid=0;
+		while(end>begin) {
+			mid = (begin+end)/2;
+			switch(data.compareTo((T) datas[mid])) {
+			case 0: return new Offset(true, mid);
+			case 1:
+				//data比mid位置的数大
+				if(data.compareTo((T) datas[mid+1])<0) {
+					return new Offset(false, mid+1);
+				}
+				begin = mid+1;
+				break;
+			case -1:
+				//data比mid位置的数小
+				if(data.compareTo((T) datas[mid-1])>0) {
+					return new Offset(false, mid);
+				}
+				end = mid-1;
+				break;
 			}
 		}
-		return mid;
+		return new Offset(false, mid);
 	}
 	
 	//----getter and setter
@@ -94,5 +134,23 @@ public class BalancedNode<T extends Comparable<T>> extends Node<T> {
 	
 	public static void main(String[] args) {
 		System.out.println((new Integer(3)).compareTo(3));
+	}
+	
+	/**
+	 * binary查找之后返回的结果，如果Offset.exist等于true，表示元素是存在的，那么index就为元素的下标
+	 * 如果Offset.exist等于false，那就是为下一个节点的下标
+	 * @author zhengquanbin
+	 *         created 2013年12月18日
+	 */
+	class Offset {
+		/**是否存在*/
+		boolean exist;
+		/**结果的下标*/
+		int index;
+		
+		public Offset(boolean exist, int index) {
+			this.exist = exist;
+			this.index = index;
+		}
 	}
 }
