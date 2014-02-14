@@ -41,6 +41,7 @@ public class EchoServer {
 		socketChannel.configureBlocking(false);
 		socketChannel.socket().bind(new InetSocketAddress(port));
 		
+		running = true;
 		System.out.println("Echo Server start, and bind in "+port);
 	}
 	
