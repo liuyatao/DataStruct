@@ -2,10 +2,11 @@ package com.zqb.datastruct.nio.http;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
-import java.util.HashSet;
+import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -23,15 +24,16 @@ public class HttpServer {
 	protected Selector selector;
 	protected ServerSocketChannel server;
 	protected int port = 80;
+	protected boolean tcpNoDelay = false;
+	
+	protected Handler[] handlers;
+	protected int curHandler = 0;
 	
 	private static final int POOL_MULTIPLE = 4;
 	
 	protected volatile boolean running = false;
 	
 	public HttpServer() throws IOException {
-		executorService = Executors.newFixedThreadPool(
-				Runtime.getRuntime().availableProcessors()*POOL_MULTIPLE);
-		
 		server = ServerSocketChannel.open();
 		server.configureBlocking(false);
 		server.socket().bind(new InetSocketAddress(port));
@@ -39,11 +41,18 @@ public class HttpServer {
 		selector = Selector.open();
 		
 		running = true;
+		
+		executorService = Executors.newFixedThreadPool(POOL_MULTIPLE);
+		handlers = new Handler[POOL_MULTIPLE];
+		for(int i=0; i<POOL_MULTIPLE; i++) {
+			handlers[i] = new Handler(Selector.open());
+			executorService.execute(handlers[i]);
+		}
 		System.out.println("server is running!");
 	}
 	
 	public void service() throws IOException {
-		server.register(selector, SelectionKey.OP_ACCEPT, new AcceptHandler());
+		server.register(selector, SelectionKey.OP_ACCEPT);
 		
 		while(running) {
 			int n = selector.select();
@@ -60,46 +69,93 @@ public class HttpServer {
 					key = iter.next();
 					iter.remove();
 					
-					Handler handler = (Handler) key.attachment();
-					handler.handle(key);
+					try {
+		              if (key.isValid()) {
+		                if (key.isAcceptable())
+		                  doAccept(key);
+		              }
+		            } catch (IOException e) {
+		            }
+		            key = null;
 				} catch(Exception e) {
-					if(key!=null) {
-						key.cancel();
-						key.channel().close();
-					}
 				}
-				
 			}
 		}
 	}
 	
-	
-	class AcceptHandler implements Handler {
+	private void doAccept(SelectionKey key) throws IOException {
+		ServerSocketChannel socketChannel = (ServerSocketChannel) key.channel();
+		SocketChannel channel;
 		
-		@Override
-		public void handle(SelectionKey selectionKey) throws IOException {
+		while((channel=socketChannel.accept())!=null) {
+			channel.configureBlocking(false);
+			channel.socket().setTcpNoDelay(tcpNoDelay);
 			
+			Handler handler = this.getHandler();
+			SelectionKey selectionKey = handler.regiest(channel);
+			selectionKey.attach(handler);
+			
+			//handler.handle();
 		}
 	}
 	
-	public static void main(String[] args) {
+	private Handler getHandler() {
+		curHandler = (curHandler+1)%POOL_MULTIPLE;
+		return handlers[curHandler];
+	}
+
+	class Handler implements Runnable {
 		
-		Set<Integer> set = new HashSet<Integer>();
-		set.add(1);
-		set.add(2);
-		set.add(3);
-		set.add(4);
-		set.add(5);
-		set.add(6);
-		set.add(7);
-		set.add(8);
-		set.add(9);
+		protected Selector selector;
 		
-		Iterator<Integer> iter = set.iterator();
-		while(iter.hasNext()) {
-			System.out.println(iter.next());
+		public Handler(Selector selector) {
+			this.selector = selector;
+		}
+
+		public void handle() {
 			
-			iter.remove();
+		}
+
+		public SelectionKey regiest(SocketChannel channel) throws IOException {
+			return channel.register(selector, SelectionKey.OP_READ|SelectionKey.OP_WRITE);
+		}
+
+		@Override
+		public void run() {
+			
+			while(running) {
+				try {
+					int n = selector.select();
+					if(n==0) {
+						continue;
+					}
+					
+					Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
+					SelectionKey key = null;
+					while(keys.hasNext()) {
+						key = keys.next();
+						if(key.isValid()) {
+							if(key.isReadable()) {
+								//接收http请求
+								receive();
+							}
+							if(key.isWritable()) {
+								//响应请求
+								send();
+							}
+						}
+					}
+				} catch (IOException e) {
+					
+					
+				}
+			}
+		}
+		private void receive() {
+			
+		}
+		private void send() {
+			
 		}
 	}
 }
