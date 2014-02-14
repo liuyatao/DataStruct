@@ -2,7 +2,9 @@ package com.zqb.datastruct.nio.http;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -93,9 +95,10 @@ public class HttpServer {
 			
 			Handler handler = this.getHandler();
 			SelectionKey selectionKey = handler.regiest(channel);
-			selectionKey.attach(handler);
+			ByteBuffer buffer = ByteBuffer.allocate(1024);
+			selectionKey.attach(buffer);
 			
-			//handler.handle();
+			handler.handle();
 		}
 	}
 	
@@ -134,14 +137,15 @@ public class HttpServer {
 					SelectionKey key = null;
 					while(keys.hasNext()) {
 						key = keys.next();
+						keys.remove();
 						if(key.isValid()) {
 							if(key.isReadable()) {
 								//接收http请求
-								receive();
+								receive((SocketChannel) key.channel());
 							}
 							if(key.isWritable()) {
 								//响应请求
-								send();
+								send((SocketChannel) key.channel());
 							}
 						}
 					}
@@ -151,10 +155,11 @@ public class HttpServer {
 				}
 			}
 		}
-		private void receive() {
+
+		private void send(SocketChannel channel) {
 			
 		}
-		private void send() {
+		private void receive(SocketChannel channel) {
 			
 		}
 	}
