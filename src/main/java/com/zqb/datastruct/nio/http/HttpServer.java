@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.zqb.datastruct.nio.http.exception.RequestNotReceivedException;
+
 /**
  * nio实现的http服务器
  * @author zhengqb
@@ -215,6 +217,13 @@ public class HttpServer {
 				ByteBuffer tmp = ByteBuffer.allocate((int) (byteBuffer.capacity()*1.5));
 				tmp.put(byteBuffer);
 				return tmp;
+			}
+			
+			public HttpRequest getRequest() throws RequestNotReceivedException {
+				if(!received) {
+					throw new RequestNotReceivedException();
+				}
+				return null;
 			}
 		}
 	}
