@@ -144,4 +144,10 @@ public class EchoServer {
 		return charset.decode(buffer).toString();
 	}
 	
+	public static void main(String[] args) throws IOException {
+		
+		new EchoServer().service();
+		
+	}
+	
 }

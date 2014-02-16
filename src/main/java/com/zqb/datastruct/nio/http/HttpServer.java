@@ -218,24 +218,4 @@ public class HttpServer {
 			}
 		}
 	}
-	
-	
-	
-	public static void main(String[] args) {
-		
-		ByteBuffer buffer = ByteBuffer.allocate(10);
-		ByteBuffer buffer2 = ByteBuffer.wrap("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".getBytes());
-		System.out.println(buffer2.limit());
-		
-		buffer.put((byte) 1);
-		
-		try {
-			buffer.put(buffer2);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		System.out.println(buffer.position());
-	}
 }
