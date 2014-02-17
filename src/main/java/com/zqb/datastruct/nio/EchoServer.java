@@ -8,7 +8,9 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -146,7 +148,10 @@ public class EchoServer {
 	
 	public static void main(String[] args) throws IOException {
 		
-		new EchoServer().service();
+		//new EchoServer().service();
+		
+		List<Integer> list = new ArrayList<Integer>(10);
+		System.out.println(list.get(1));
 		
 	}
 	

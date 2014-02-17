@@ -2,22 +2,18 @@ package com.zqb.datastruct.nio.http;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.Buffer;
-import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import com.zqb.datastruct.nio.http.exception.RequestNotReceivedException;
-
 /**
  * nio实现的http服务器
  * @author zhengqb
@@ -31,6 +27,7 @@ public class HttpServer {
 	protected ServerSocketChannel server;
 	protected int port = 80;
 	protected boolean tcpNoDelay = false;
+	private Charset charset = Charset.forName("utf-8");
 	
 	protected HttpHandler[] handlers;
 	protected int curHandler = 0;
@@ -101,8 +98,8 @@ public class HttpServer {
 			handler.regiest(channel);
 			/*ByteBuffer buffer = ByteBuffer.allocate(1024);
 			selectionKey.attach(buffer);
-			
-			handler.handle();*/
+			*/
+			handler.handle();
 		}
 	}
 	
@@ -120,11 +117,12 @@ public class HttpServer {
 		}
 
 		public void handle() {
-			
+			this.selector.wakeup();
 		}
 
 		public SelectionKey regiest(SocketChannel channel) throws IOException {
-			return channel.register(selector, SelectionKey.OP_READ, new RequestChannel(channel));
+			//this.selector.wakeup();
+			return channel.register(this.selector, SelectionKey.OP_READ, new RequestChannel(channel));
 		}
 
 		@Override
@@ -133,12 +131,12 @@ public class HttpServer {
 			while(running) {
 				SelectionKey key = null;
 				try {
-					int n = selector.select();
+					int n = this.selector.select();
 					if(n==0) {
 						continue;
 					}
 					
-					Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
+					Iterator<SelectionKey> keys = this.selector.selectedKeys().iterator();
 					while(keys.hasNext()) {
 						key = keys.next();
 						keys.remove();
@@ -171,11 +169,26 @@ public class HttpServer {
 			if(!rc.receive())
 				return;
 			
-			
+			//进行http请求的解析
+			//HttpRequest request = parse(rc.getByteBuffer());
+			String line = null;
+			while((line=rc.readLine())!=null) {
+				System.out.println(line);
+			}
 		}
 		
 		/**
-		 * 对SocketChannel进行包装，增加了自动增长缓冲区容量的功能
+		 * 进行http请求的解析
+		 * @param byteBuffer
+		 * @return
+		 */
+		private HttpRequest parse(ByteBuffer byteBuffer) {
+			return null;
+		}
+
+		/**
+		 * 对SocketChannel进行包装，增加了自动增长缓冲区容量的功能<br/>
+		 * 	1、如果我需要进行对SocketChannel的包装，就不应该有任何关于SocketChannel，以及相关的类
 		 * @author zhengquanbin
 		 *         created 2014年2月16日
 		 */
@@ -184,11 +197,16 @@ public class HttpServer {
 			protected ByteBuffer byteBuffer;
 			protected boolean received = false;
 			
+			protected List<String> httpHead;
+			protected int position = 0;
+			
 			private static final int REQUEST_BUFFER_SIZE = 4098;
 			
 			public RequestChannel(SocketChannel socketChannel) throws IOException {
 				this.socketChannel = socketChannel;
 				byteBuffer = ByteBuffer.allocate(REQUEST_BUFFER_SIZE);
+				
+				this.httpHead = new ArrayList<String>();
 			}
 
 			/**
@@ -198,15 +216,22 @@ public class HttpServer {
 			 */
 			public boolean receive() throws IOException {
 				if(!received) {
-					try {
-						received = (socketChannel.read(byteBuffer)==-1);
-					} catch (BufferOverflowException e) {
-						//如果已经满了
-						byteBuffer = resizeBuffer();
-						received = (socketChannel.read(byteBuffer)==-1);
+					//received = (socketChannel.read(byteBuffer)==-1);
+					int n = socketChannel.read(byteBuffer);
+					if(n!=-1) {
+						String data = charset.decode(byteBuffer).toString();
+						if(data.indexOf("\r\n")!=-1) {
+							String line = data.substring(0, data.indexOf("\n")+1);
+							httpHead.add(line);
+							ByteBuffer temp = charset.encode(line);
+							byteBuffer.position(temp.limit());
+							byteBuffer.compact();
+						}
+						return false;
 					}
+					received = true;
 				}
-				return received;		
+				return received;
 			}
 
 			/**
@@ -219,12 +244,22 @@ public class HttpServer {
 				return tmp;
 			}
 			
-			public HttpRequest getRequest() throws RequestNotReceivedException {
-				if(!received) {
-					throw new RequestNotReceivedException();
+			/**
+			 * 读取一行
+			 * @return 返回null时表示没有数据
+			 */
+			public String readLine() {
+				if(position==httpHead.size()) {
+					return null;
 				}
-				return null;
+				return httpHead.get(position++);
 			}
 		}
+	}
+	
+	public static void main(String[] args) throws IOException {
+		
+		new HttpServer().service();
+		
 	}
 }
