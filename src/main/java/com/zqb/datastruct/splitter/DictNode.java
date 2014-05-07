@@ -77,7 +77,7 @@ public class DictNode {
 	public int getLevel() {
 		return level;
 	}
-	public DictNode buildOrGetNode(String word) {
+	public DictNode buildOrGetNode(char word) {
 		return subNodes.get(word);
 	}
 	public boolean isEnd() {
