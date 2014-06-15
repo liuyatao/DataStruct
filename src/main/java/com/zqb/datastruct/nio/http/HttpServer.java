@@ -78,6 +78,7 @@ public class HttpServer {
 		                  doAccept(key);
 		              }
 		            } catch (IOException e) {
+		            	e.printStackTrace();
 		            }
 		            key = null;
 				} catch(Exception e) {
@@ -88,18 +89,13 @@ public class HttpServer {
 	
 	private void doAccept(SelectionKey key) throws IOException {
 		ServerSocketChannel socketChannel = (ServerSocketChannel) key.channel();
-		SocketChannel channel;
-		
-		while((channel=socketChannel.accept())!=null) {
+		SocketChannel channel = socketChannel.accept();
+		if(channel!=null) {
 			channel.configureBlocking(false);
 			channel.socket().setTcpNoDelay(tcpNoDelay);
 			
 			HttpHandler handler = this.getHandler();
 			handler.regiest(channel);
-			/*ByteBuffer buffer = ByteBuffer.allocate(1024);
-			selectionKey.attach(buffer);
-			*/
-			handler.handle();
 		}
 	}
 	
@@ -121,7 +117,7 @@ public class HttpServer {
 		}
 
 		public SelectionKey regiest(SocketChannel channel) throws IOException {
-			//this.selector.wakeup();
+			this.selector.wakeup();
 			return channel.register(this.selector, SelectionKey.OP_READ, new RequestChannel(channel));
 		}
 
@@ -133,6 +129,11 @@ public class HttpServer {
 				try {
 					int n = this.selector.select();
 					if(n==0) {
+						try {
+							Thread.sleep(10);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
 						continue;
 					}
 					
@@ -166,8 +167,9 @@ public class HttpServer {
 		private void receive(SelectionKey key) throws IOException {
 			RequestChannel rc = (RequestChannel) key.attachment();
 			//接收http请求
-			if(!rc.receive())
+			if(!rc.receive()) {
 				return;
+			}
 			
 			//进行http请求的解析
 			//HttpRequest request = parse(rc.getByteBuffer());
@@ -205,7 +207,6 @@ public class HttpServer {
 			public RequestChannel(SocketChannel socketChannel) throws IOException {
 				this.socketChannel = socketChannel;
 				byteBuffer = ByteBuffer.allocate(REQUEST_BUFFER_SIZE);
-				
 				this.httpHead = new ArrayList<String>();
 			}
 
@@ -216,20 +217,10 @@ public class HttpServer {
 			 */
 			public boolean receive() throws IOException {
 				if(!received) {
-					//received = (socketChannel.read(byteBuffer)==-1);
-					int n = socketChannel.read(byteBuffer);
-					if(n!=-1) {
-						String data = charset.decode(byteBuffer).toString();
-						if(data.indexOf("\r\n")!=-1) {
-							String line = data.substring(0, data.indexOf("\n")+1);
-							httpHead.add(line);
-							ByteBuffer temp = charset.encode(line);
-							byteBuffer.position(temp.limit());
-							byteBuffer.compact();
-						}
-						return false;
+					received = (socketChannel.read(byteBuffer)==-1);
+					if(byteBuffer.remaining()<100) {
+						resizeBuffer();
 					}
-					received = true;
 				}
 				return received;
 			}
@@ -238,10 +229,10 @@ public class HttpServer {
 			 * 如果发现ByteBuffer的size不足i，就会增加1倍
 			 * @return
 			 */
-			private ByteBuffer resizeBuffer() {
+			private void resizeBuffer() {
 				ByteBuffer tmp = ByteBuffer.allocate((int) (byteBuffer.capacity()*1.5));
 				tmp.put(byteBuffer);
-				return tmp;
+				this.byteBuffer = tmp;
 			}
 			
 			/**
